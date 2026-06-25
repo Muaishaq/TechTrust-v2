@@ -1,0 +1,16 @@
+---
+description: TechTrust NDPR and GDPR data privacy and compliance rules
+alwaysApply: true
+---
+
+# Data Privacy & Compliance (NDPR / GDPR)
+
+- NEVER collect location data beyond country and city from IP geolocation
+- NEVER collect GPS or precise real-time location — illegal without explicit consent
+- ALWAYS check user consent before logging activity data
+- ALWAYS provide data in structured format when user requests export
+- ALWAYS permanently delete ALL user data when account deletion is requested
+- NEVER retain personal data beyond the defined retention period (2 years inactive)
+- ALWAYS log consent: who gave it, when, what version of policy, from which IP
+- NEVER share user data with third parties without explicit consent
+- ALWAYS anonymize data used for analytics where possible

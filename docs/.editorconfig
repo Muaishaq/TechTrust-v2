@@ -1,0 +1,50 @@
+# TechTrust .editorconfig
+# Version: 1.0
+# Author: Muhammed Ishaq — Founder & CEO, TechTrust
+# Created: June 2026
+# Purpose: Enforces consistent code formatting across all editors and tools.
+#          VS Code, Cursor, and any other editor will follow these rules automatically.
+
+# Top-most EditorConfig file
+root = true
+
+# ── All Files ──────────────────────────────────────────────────────────────────
+[*]
+charset                  = utf-8
+end_of_line              = lf
+indent_style             = space
+indent_size              = 2
+insert_final_newline     = true
+trim_trailing_whitespace = true
+max_line_length          = 100
+
+# ── JavaScript & TypeScript ────────────────────────────────────────────────────
+[*.{js,jsx,ts,tsx}]
+indent_size = 2
+
+# ── Python ────────────────────────────────────────────────────────────────────
+[*.py]
+indent_size    = 4
+max_line_length = 88
+
+# ── JSON ──────────────────────────────────────────────────────────────────────
+[*.json]
+indent_size = 2
+
+# ── Markdown ──────────────────────────────────────────────────────────────────
+[*.md]
+trim_trailing_whitespace = false
+max_line_length          = off
+
+# ── Environment Files ─────────────────────────────────────────────────────────
+[*.env*]
+insert_final_newline = true
+
+# ── YAML ──────────────────────────────────────────────────────────────────────
+[*.{yml,yaml}]
+indent_size = 2
+
+# ── Shell Scripts ─────────────────────────────────────────────────────────────
+[*.sh]
+end_of_line = lf
+indent_size = 2

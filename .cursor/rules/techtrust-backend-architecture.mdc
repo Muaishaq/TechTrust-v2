@@ -1,0 +1,90 @@
+---
+description: TechTrust Node.js backend layer boundaries, templates, API responses, and audit trail
+globs: backend/**/*
+alwaysApply: false
+---
+
+# Backend Architecture (Node.js + Express)
+
+## Layer Boundaries — NEVER Cross These
+
+```
+Routes      → Call controllers only. No business logic. No DB access.
+Controllers → Call services only. Handle HTTP req/res. No business logic.
+Services    → Call repositories only. Contain all business logic.
+Repositories→ Call Mongoose models only. Contain all DB queries.
+Models      → Define schema only. No business logic.
+```
+
+## Route File Template
+
+```javascript
+const express = require('express');
+const router = express.Router();
+const { authenticate, requireRole } = require('../../middleware/auth.middleware');
+const { rateLimiter } = require('../../middleware/rateLimiter.middleware');
+const { validate } = require('../../middleware/validate.middleware');
+const [name]Controller = require('../../controllers/[name].controller');
+const { [name]Validators } = require('../../validators/[name].validators');
+
+router.use(rateLimiter);
+// Routes here...
+module.exports = router;
+```
+
+## Controller Template
+
+```javascript
+const asyncHandler = require('../utils/asyncHandler');
+const [Name]Service = require('../services/[name].service');
+const { successResponse, errorResponse } = require('../utils/response');
+
+const methodName = asyncHandler(async (req, res) => {
+  const result = await [Name]Service.methodName(req.user.id, req.body);
+  return successResponse(res, 200, 'Success message', result);
+});
+```
+
+## Service & Repository Templates
+
+```javascript
+// Service — business logic only, no HTTP, no direct DB
+const methodName = async (userId, data) => {
+  // Validate business rules, call repositories, return processed result
+};
+
+// Repository — ALL database queries, parameterized always
+const findById = async (id) => {
+  return await [Name]Model.findById(id).lean();
+};
+```
+
+## API Response Format
+
+```javascript
+// Success
+{ "success": true, "message": "Human readable message", "data": { ... } }
+
+// Error
+{ "success": false, "message": "Human readable error message", "errors": [ ... ] }
+
+// Paginated
+{ "success": true, "message": "...", "data": [ ... ], "pagination": { "page": 1, "limit": 20, "total": 450, "totalPages": 23 } }
+```
+
+## Audit Trail
+
+Log every significant action:
+```javascript
+await AuditService.log({
+  actorId: req.user.id,
+  actorRole: req.user.role,
+  action: 'ACTION_NAME',
+  targetId: targetUser._id,
+  targetType: 'User',
+  ipAddress: req.ip,
+  outcome: 'success'
+});
+```
+
+Must log: registration/login, suspension/deletion, verification events, admin overrides, payments, disputes, consent changes, data exports, failed auth attempts.

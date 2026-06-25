@@ -1,0 +1,356 @@
+# TechTrust .cursorrules
+# Version: 1.0
+# Author: Muhammed Ishaq — Founder & CEO, TechTrust
+# Created: June 2026
+# Purpose: Cursor reads this automatically before every suggestion.
+#          These rules are non-negotiable and override Cursor defaults.
+
+---
+
+## IDENTITY
+
+You are the AI coding assistant for TechTrust — an AI-powered developer
+credential verification and coaching platform built by Muhammed Ishaq.
+
+You are working on a production startup platform. Every line of code
+you write must be clean, secure, well-commented, and ready to scale.
+There is no "we'll fix it later" — it must be right the first time.
+
+---
+
+## BEFORE WRITING ANY CODE
+
+1. Read the file header comment to understand what the file does
+2. Check which layer you are in: route / controller / service / repository / model
+3. Never mix responsibilities across layers
+4. Always check if a utility function already exists before creating a new one
+5. Always check SPECIFICATION.md for the correct data structure before creating models
+
+---
+
+## CODE STRUCTURE RULES
+
+### File Headers (Required on Every File)
+Every file you create or modify must have this header:
+```javascript
+/**
+ * @file        [filename]
+ * @description [What this file does — be specific]
+ * @author      Muaishaq
+ * @created     [YYYY-MM-DD]
+ * @modified    [YYYY-MM-DD]
+ */
+```
+
+For Python files:
+```python
+"""
+@file:        [filename]
+@description: [What this file does — be specific]
+@author:      Muaishaq
+@created:     [YYYY-MM-DD]
+@modified:    [YYYY-MM-DD]
+"""
+```
+
+### Function Documentation (Required on Every Function)
+JavaScript:
+```javascript
+/**
+ * @description [What this function does]
+ * @param       {Type} paramName - [What this parameter is]
+ * @returns     {Type} [What is returned]
+ * @throws      {Error} [What errors can be thrown]
+ */
+```
+
+Python:
+```python
+def function_name(param):
+    """
+    Description: [What this function does]
+    Args:        param (type): [What this parameter is]
+    Returns:     type: [What is returned]
+    Raises:      ErrorType: [What errors can be raised]
+    """
+```
+
+### Naming Conventions
+- Variables and functions: camelCase
+- Classes and React components: PascalCase
+- Constants: SCREAMING_SNAKE_CASE
+- Database fields: camelCase
+- API endpoints: kebab-case
+- File names: kebab-case for JS/TS, snake_case for Python
+
+### File Length
+- Maximum 300 lines per file
+- If a file exceeds 300 lines, split it into focused modules
+
+---
+
+## BACKEND ARCHITECTURE RULES (Node.js + Express)
+
+### Layer Boundaries — NEVER Cross These
+```
+Routes      → Call controllers only. No business logic. No DB access.
+Controllers → Call services only. Handle HTTP req/res. No business logic.
+Services    → Call repositories only. Contain all business logic.
+Repositories→ Call Mongoose models only. Contain all DB queries.
+Models      → Define schema only. No business logic.
+```
+
+### Route File Template
+```javascript
+/**
+ * @file        [name].routes.js
+ * @description Routes for [feature]. Endpoints:
+ *              GET    /api/v1/[resource]        - [description]
+ *              POST   /api/v1/[resource]        - [description]
+ *              PUT    /api/v1/[resource]/:id    - [description]
+ *              DELETE /api/v1/[resource]/:id    - [description]
+ * @author      Muaishaq
+ * @created     YYYY-MM-DD
+ * @modified    YYYY-MM-DD
+ */
+
+const express = require('express');
+const router = express.Router();
+const { authenticate, requireRole } = require('../../middleware/auth.middleware');
+const { rateLimiter } = require('../../middleware/rateLimiter.middleware');
+const { validate } = require('../../middleware/validate.middleware');
+const [name]Controller = require('../../controllers/[name].controller');
+const { [name]Validators } = require('../../validators/[name].validators');
+
+// Apply rate limiter to all routes in this file
+router.use(rateLimiter);
+
+// Routes here...
+
+module.exports = router;
+```
+
+### Controller Template
+```javascript
+// Controllers only handle HTTP — no business logic
+const asyncHandler = require('../utils/asyncHandler');
+const [Name]Service = require('../services/[name].service');
+const { successResponse, errorResponse } = require('../utils/response');
+
+const methodName = asyncHandler(async (req, res) => {
+  const result = await [Name]Service.methodName(req.user.id, req.body);
+  return successResponse(res, 200, 'Success message', result);
+});
+```
+
+### Service Template
+```javascript
+// Services contain all business logic — no HTTP, no direct DB
+const [Name]Repository = require('../repositories/[name].repository');
+const AppError = require('../utils/AppError');
+
+const methodName = async (userId, data) => {
+  // Validate business rules
+  // Call repositories
+  // Return processed result
+};
+```
+
+### Repository Template
+```javascript
+// Repositories contain ALL database queries — parameterized always
+const [Name]Model = require('../models/[name].model');
+
+const findById = async (id) => {
+  return await [Name]Model.findById(id).lean();
+};
+```
+
+---
+
+## SECURITY RULES — ENFORCED ON EVERY FILE
+
+### Never Do These
+- NEVER store secrets, API keys, or tokens in code — use process.env
+- NEVER use `eval()` or `Function()` constructor
+- NEVER use `dangerouslySetInnerHTML` without sanitization
+- NEVER log sensitive data (passwords, tokens, personal data)
+- NEVER return stack traces or internal error details to clients
+- NEVER skip input validation on any endpoint
+- NEVER create a route without authentication unless explicitly public
+- NEVER use `SELECT *` equivalent — always specify fields needed
+- NEVER concatenate user input into queries
+
+### Always Do These
+- ALWAYS wrap async route handlers in asyncHandler or try-catch
+- ALWAYS validate and sanitize all incoming data
+- ALWAYS use parameterized queries
+- ALWAYS return generic error messages to clients
+- ALWAYS log errors server-side with winston
+- ALWAYS check user authorization before data access
+- ALWAYS use HTTPS-only cookies for sensitive tokens
+- ALWAYS add rate limiting to new routes
+
+### Input Validation Pattern
+```javascript
+// Always validate before processing
+const { body, validationResult } = require('express-validator');
+
+const validators = [
+  body('email').isEmail().normalizeEmail(),
+  body('name').isString().trim().isLength({ min: 2, max: 100 }),
+  // Add field-specific validators
+];
+```
+
+### Error Response Pattern
+```javascript
+// Never expose internal details
+// Wrong:
+res.status(500).json({ error: err.message, stack: err.stack });
+
+// Right:
+res.status(500).json({ success: false, message: 'An error occurred. Please try again.' });
+```
+
+---
+
+## DATA PRIVACY & COMPLIANCE RULES (NDPR / GDPR)
+
+- NEVER collect location data beyond country and city from IP geolocation
+- NEVER collect GPS or precise real-time location — this is illegal without explicit consent
+- ALWAYS check user consent before logging activity data
+- ALWAYS provide data in structured format when user requests export
+- ALWAYS permanently delete ALL user data when account deletion is requested
+- NEVER retain personal data beyond the defined retention period (2 years inactive)
+- ALWAYS log consent: who gave it, when, what version of policy, from which IP
+- NEVER share user data with third parties without explicit consent
+- ALWAYS anonymize data used for analytics where possible
+
+---
+
+## PYTHON / AI ENGINE RULES (Cursor applies these when in /ai-engine)
+
+### Config Management
+```python
+# All thresholds, weights, and config in config.py — never hardcoded
+from config.config import SCORING_WEIGHTS, CONFIDENCE_THRESHOLDS
+```
+
+### Input Validation
+```python
+# Validate all inputs before processing
+def validate_github_data(data: dict) -> tuple[bool, str]:
+    """
+    Validates GitHub data payload before scoring.
+    Returns (is_valid, error_message)
+    """
+    required_fields = ['repositories', 'commits', 'languages']
+    for field in required_fields:
+        if field not in data:
+            return False, f'Missing required field: {field}'
+    return True, ''
+```
+
+### Output Format
+```python
+# Every scoring function returns this structure
+{
+    'score': float,          # 0.0 to 100.0
+    'confidence': float,     # 0.0 to 1.0 — how much data was available
+    'breakdown': dict,       # detailed sub-scores
+    'flags': list            # any anomalies detected
+}
+```
+
+---
+
+## AUDIT TRAIL RULES
+
+Every significant action must be logged to the audit trail:
+```javascript
+await AuditService.log({
+  actorId: req.user.id,
+  actorRole: req.user.role,
+  action: 'ACTION_NAME',           // e.g. 'USER_SUSPENDED'
+  targetId: targetUser._id,
+  targetType: 'User',
+  ipAddress: req.ip,
+  outcome: 'success'               // or 'failed'
+});
+```
+
+Actions that MUST be logged:
+- User registration and login
+- Account suspension or deletion
+- Verification triggered, completed, or flagged
+- Admin overrides of any kind
+- Payment events
+- Dispute creation and resolution
+- Consent granted or revoked
+- Data export requested
+- Failed authentication attempts
+
+---
+
+## RESPONSE FORMAT
+
+All API responses must follow this exact structure:
+```javascript
+// Success
+{
+  "success": true,
+  "message": "Human readable message",
+  "data": { ... }          // or null
+}
+
+// Error
+{
+  "success": false,
+  "message": "Human readable error message",
+  "errors": [ ... ]        // validation errors only, never stack traces
+}
+
+// Paginated list
+{
+  "success": true,
+  "message": "Developers retrieved",
+  "data": [ ... ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 450,
+    "totalPages": 23
+  }
+}
+```
+
+---
+
+## COMMIT MESSAGE FORMAT
+
+Every git commit must follow this format:
+```
+type(scope): short description
+
+Types: feat | fix | security | refactor | test | docs | chore
+Examples:
+  feat(auth): add GitHub OAuth callback handler
+  fix(validation): sanitize email input on registration
+  security(middleware): add rate limiting to verification endpoint
+  docs(api): update developer profile endpoint documentation
+```
+
+---
+
+## WHAT TO DO WHEN UNSURE
+
+1. Check SPECIFICATION.md for the correct data structure or feature description
+2. Check ARCHITECTURE.md for the correct file location
+3. Check CONSTITUTION.md for the applicable standard
+4. Ask before making assumptions on security-sensitive code
+5. When in doubt — be more secure, not less
+
+---
+
+*TechTrust .cursorrules v1.0 — Muhammed Ishaq — June 2026*

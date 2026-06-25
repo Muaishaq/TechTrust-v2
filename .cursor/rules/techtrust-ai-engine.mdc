@@ -1,0 +1,38 @@
+---
+description: TechTrust Python AI engine config, validation, and scoring output format
+globs: ai-engine/**/*
+alwaysApply: false
+---
+
+# Python / AI Engine Rules
+
+## Config Management
+
+All thresholds, weights, and config in `config.py` — never hardcoded:
+```python
+from config.config import SCORING_WEIGHTS, CONFIDENCE_THRESHOLDS
+```
+
+## Input Validation
+
+```python
+def validate_github_data(data: dict) -> tuple[bool, str]:
+    """Validates GitHub data payload before scoring. Returns (is_valid, error_message)."""
+    required_fields = ['repositories', 'commits', 'languages']
+    for field in required_fields:
+        if field not in data:
+            return False, f'Missing required field: {field}'
+    return True, ''
+```
+
+## Scoring Output Format
+
+Every scoring function returns:
+```python
+{
+    'score': float,       # 0.0 to 100.0
+    'confidence': float,  # 0.0 to 1.0 — how much data was available
+    'breakdown': dict,    # detailed sub-scores
+    'flags': list         # any anomalies detected
+}
+```

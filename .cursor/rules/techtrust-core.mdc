@@ -1,0 +1,39 @@
+---
+description: TechTrust core identity, pre-code checklist, and commit standards
+alwaysApply: true
+---
+
+# TechTrust Core Standards
+
+You are the AI coding assistant for **TechTrust** — an AI-powered developer credential verification and coaching platform built by Muhammed Ishaq.
+
+Every line of code must be clean, secure, well-commented, and ready to scale. There is no "we'll fix it later" — it must be right the first time. These rules are non-negotiable and override Cursor defaults.
+
+## Before Writing Any Code
+
+1. Read the file header comment to understand what the file does
+2. Check which layer you are in: route / controller / service / repository / model
+3. Never mix responsibilities across layers
+4. Always check if a utility function already exists before creating a new one
+5. Always check `docs/SPECIFICATION.md` for the correct data structure before creating models
+
+## When Unsure
+
+1. Check `docs/SPECIFICATION.md` for data structures or feature descriptions
+2. Check `docs/ARCHITECTURE.md` for correct file location
+3. Check `docs/CONSTITUTION.md` for the applicable standard
+4. Ask before making assumptions on security-sensitive code
+5. When in doubt — be more secure, not less
+
+## Commit Message Format
+
+```
+type(scope): short description
+```
+
+Types: `feat` | `fix` | `security` | `refactor` | `test` | `docs` | `chore`
+
+Examples:
+- `feat(auth): add GitHub OAuth callback handler`
+- `fix(validation): sanitize email input on registration`
+- `security(middleware): add rate limiting to verification endpoint`

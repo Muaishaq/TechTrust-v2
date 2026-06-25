@@ -1,0 +1,67 @@
+---
+description: TechTrust file headers, function docs, naming, and file length limits
+alwaysApply: true
+---
+
+# Code Structure Rules
+
+## File Headers (Required on Every File)
+
+JavaScript:
+```javascript
+/**
+ * @file        [filename]
+ * @description [What this file does — be specific]
+ * @author      Muaishaq
+ * @created     [YYYY-MM-DD]
+ * @modified    [YYYY-MM-DD]
+ */
+```
+
+Python:
+```python
+"""
+@file:        [filename]
+@description: [What this file does — be specific]
+@author:      Muaishaq
+@created:     [YYYY-MM-DD]
+@modified:    [YYYY-MM-DD]
+"""
+```
+
+## Function Documentation (Required on Every Function)
+
+JavaScript:
+```javascript
+/**
+ * @description [What this function does]
+ * @param       {Type} paramName - [What this parameter is]
+ * @returns     {Type} [What is returned]
+ * @throws      {Error} [What errors can be thrown]
+ */
+```
+
+Python:
+```python
+def function_name(param):
+    """
+    Description: [What this function does]
+    Args:        param (type): [What this parameter is]
+    Returns:     type: [What is returned]
+    Raises:      ErrorType: [What errors can be raised]
+    """
+```
+
+## Naming Conventions
+
+- Variables and functions: camelCase
+- Classes and React components: PascalCase
+- Constants: SCREAMING_SNAKE_CASE
+- Database fields: camelCase
+- API endpoints: kebab-case
+- File names: kebab-case for JS/TS, snake_case for Python
+
+## File Length
+
+- Maximum 300 lines per file
+- If a file exceeds 300 lines, split it into focused modules

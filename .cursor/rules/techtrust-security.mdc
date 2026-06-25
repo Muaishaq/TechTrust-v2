@@ -1,0 +1,48 @@
+---
+description: TechTrust security rules enforced on every file
+alwaysApply: true
+---
+
+# Security Rules
+
+## Never Do These
+
+- NEVER store secrets, API keys, or tokens in code — use `process.env`
+- NEVER use `eval()` or `Function()` constructor
+- NEVER use `dangerouslySetInnerHTML` without sanitization
+- NEVER log sensitive data (passwords, tokens, personal data)
+- NEVER return stack traces or internal error details to clients
+- NEVER skip input validation on any endpoint
+- NEVER create a route without authentication unless explicitly public
+- NEVER use `SELECT *` equivalent — always specify fields needed
+- NEVER concatenate user input into queries
+
+## Always Do These
+
+- ALWAYS wrap async route handlers in asyncHandler or try-catch
+- ALWAYS validate and sanitize all incoming data
+- ALWAYS use parameterized queries
+- ALWAYS return generic error messages to clients
+- ALWAYS log errors server-side with winston
+- ALWAYS check user authorization before data access
+- ALWAYS use HTTPS-only cookies for sensitive tokens
+- ALWAYS add rate limiting to new routes
+
+## Input Validation Pattern
+
+```javascript
+const validators = [
+  body('email').isEmail().normalizeEmail(),
+  body('name').isString().trim().isLength({ min: 2, max: 100 }),
+];
+```
+
+## Error Response Pattern
+
+```javascript
+// Wrong:
+res.status(500).json({ error: err.message, stack: err.stack });
+
+// Right:
+res.status(500).json({ success: false, message: 'An error occurred. Please try again.' });
+```
