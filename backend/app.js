@@ -6,10 +6,12 @@
  *              All security standards from CONSTITUTION.md Standard 3 applied here.
  * @author      Muaishaq
  * @created     2026-06-30
- * @modified    2026-06-30
+ * @modified    2026-07-01
  */
 
 'use strict';
+
+require('dotenv').config();
 
 const express = require('express');
 const helmet = require('helmet');
@@ -17,9 +19,10 @@ const cors = require('cors');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
-require('dotenv').config();
 
 const logger = require('./utils/logger');
+const errorHandler = require('./middleware/errorHandler.middleware');
+const notFound = require('./middleware/notFound.middleware');
 
 const app = express();
 
@@ -56,28 +59,34 @@ app.use(helmet({
 // ── CORS Configuration ────────────────────────────────────────────────────────
 // Only whitelisted domains can make requests to this API
 // Constitution Standard 3 — CORS whitelist only, no wildcard in production
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:5173')
+const ALLOWED_ORIGINS = (
+  process.env.ALLOWED_ORIGINS ||
+  process.env.FRONTEND_URL ||
+  'http://localhost:5173'
+)
   .split(',')
-  .map(origin => origin.trim());
+  .map((origin) => origin.trim());
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman in dev)
-    if (!origin && process.env.NODE_ENV === 'development') {
-      return callback(null, true);
-    }
-    if (ALLOWED_ORIGINS.includes(origin)) {
-      return callback(null, true);
-    }
-    logger.warn(`CORS blocked request from origin: ${origin}`);
-    return callback(new Error('Not allowed by CORS policy'));
-  },
-  credentials: true,          // Allow HttpOnly cookies
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  exposedHeaders: ['X-Total-Count'],
-  maxAge: 86400,              // Cache preflight for 24 hours
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (Postman in development only)
+      if (!origin && process.env.NODE_ENV === 'development') {
+        return callback(null, true);
+      }
+      if (ALLOWED_ORIGINS.includes(origin)) {
+        return callback(null, true);
+      }
+      logger.warn(`CORS blocked request from origin: ${origin}`);
+      return callback(new Error('Not allowed by CORS policy'));
+    },
+    credentials: true,         // Allow HttpOnly cookies
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['X-Total-Count'],
+    maxAge: 86400,             // Cache preflight for 24 hours
+  })
+);
 
 // ── Global Rate Limiter ───────────────────────────────────────────────────────
 // Applies to ALL routes — individual routes add stricter limits on top
@@ -105,11 +114,13 @@ app.use(globalLimiter);
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 } else {
-  app.use(morgan('combined', {
-    stream: {
-      write: (message) => logger.info(message.trim()),
-    },
-  }));
+  app.use(
+    morgan('combined', {
+      stream: {
+        write: (message) => logger.info(message.trim()),
+      },
+    })
+  );
 }
 
 // ── Body Parsers ──────────────────────────────────────────────────────────────
@@ -136,7 +147,7 @@ app.get('/api/v1/health', (req, res) => {
 
 // ── API Routes ────────────────────────────────────────────────────────────────
 // All routes versioned under /api/v1/
-// Routes are added here as each phase is built
+// Routes are uncommented as each phase is completed
 // app.use('/api/v1/auth', require('./routes/v1/auth.routes'));
 // app.use('/api/v1/developers', require('./routes/v1/developer.routes'));
 // app.use('/api/v1/employers', require('./routes/v1/employer.routes'));
@@ -146,77 +157,13 @@ app.get('/api/v1/health', (req, res) => {
 // app.use('/api/v1/public', require('./routes/v1/public.routes'));
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
-// Catches any request to an undefined route
-// Returns clean error — never exposes internal structure
-app.use((req, res) => {
-  logger.warn(`404 — Route not found: ${req.method} ${req.originalUrl}`);
-  res.status(404).json({
-    success: false,
-    message: 'The requested resource was not found.',
-  });
-});
+// Catches all requests to undefined routes
+// Constitution Standard 3 — no internal structure exposed
+app.use(notFound);
 
 // ── Global Error Handler ──────────────────────────────────────────────────────
-// Catches all errors passed via next(error)
+// Catches all errors passed via next(error) throughout the app
 // Constitution Standard 3 — internal errors never exposed to client
-app.use((err, req, res, next) => {
-  // Log full error details server-side only
-  logger.error('Unhandled error:', {
-    message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    path: req.originalUrl,
-    method: req.method,
-    ip: req.ip,
-  });
-
-  // CORS errors
-  if (err.message === 'Not allowed by CORS policy') {
-    return res.status(403).json({
-      success: false,
-      message: 'Access denied — origin not allowed.',
-    });
-  }
-
-  // JWT errors
-  if (err.name === 'JsonWebTokenError') {
-    return res.status(401).json({
-      success: false,
-      message: 'Invalid authentication token.',
-    });
-  }
-
-  if (err.name === 'TokenExpiredError') {
-    return res.status(401).json({
-      success: false,
-      message: 'Authentication token has expired.',
-    });
-  }
-
-  // Mongoose validation errors
-  if (err.name === 'ValidationError') {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed.',
-      errors: Object.values(err.errors).map(e => e.message),
-    });
-  }
-
-  // Mongoose duplicate key errors
-  if (err.code === 11000) {
-    return res.status(409).json({
-      success: false,
-      message: 'A record with this information already exists.',
-    });
-  }
-
-  // Generic server error — never expose details to client
-  const statusCode = err.statusCode || 500;
-  res.status(statusCode).json({
-    success: false,
-    message: statusCode === 500
-      ? 'An unexpected error occurred. Please try again.'
-      : err.message,
-  });
-});
+app.use(errorHandler);
 
 module.exports = app;
