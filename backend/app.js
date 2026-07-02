@@ -159,11 +159,11 @@ app.get('/api/v1/health', (req, res) => {
 // All routes versioned under /api/v1/
 // Routes are uncommented as each phase is completed
 app.use('/api/v1/auth', require('./routes/v1/auth.routes'));
+app.use('/api/v1/account', require('./routes/v1/account.routes'));
 // app.use('/api/v1/developers', require('./routes/v1/developer.routes'));
 // app.use('/api/v1/employers', require('./routes/v1/employer.routes'));
 // app.use('/api/v1/admin', require('./routes/v1/admin.routes'));
 // app.use('/api/v1/payments', require('./routes/v1/payment.routes'));
-// app.use('/api/v1/account', require('./routes/v1/account.routes'));
 // app.use('/api/v1/public', require('./routes/v1/public.routes'));
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
