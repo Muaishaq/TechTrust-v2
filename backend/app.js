@@ -164,7 +164,7 @@ app.use('/api/v1/developers', require('./routes/v1/developer.routes'));
 app.use('/api/v1/employers', require('./routes/v1/employer.routes'));
 app.use('/api/v1/admin', require('./routes/v1/admin.routes'));
 app.use('/api/v1/notifications', require('./routes/v1/notification.routes'));
-// app.use('/api/v1/payments', require('./routes/v1/payment.routes'));
+app.use('/api/v1/payments', require('./routes/v1/payment.routes'));
 // app.use('/api/v1/public', require('./routes/v1/public.routes'));
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
